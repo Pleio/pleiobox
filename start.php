@@ -120,15 +120,15 @@ function pleiobox_api_page_handler($url) {
 
             switch ($url[1]) {
                 case "create_folder":
-                    $path = localbox_parse_path(get_input('path'));
+                    $path = pleiobox_parse_path(get_input('path'));
                     $api->createFolder($path[0], array_slice($path, 1));
                     break;
                 case "move":
-                    $from_path = localbox_parse_path(get_input('from_path'));
-                    $to_path = localbox_parse_path(get_input('to_path'));
+                    $from_path = pleiobox_parse_path(get_input('from_path'));
+                    $to_path = pleiobox_parse_path(get_input('to_path'));
                     $api->move($from_path[0], array_slice($from_path, 1), $to_path[0], array_slice($to_path, 1));
                 case "delete":
-                    $path = localbox_parse_path(get_input('path'));
+                    $path = pleiobox_parse_path(get_input('path'));
                     $api->delete($path[0], array_slice($path, 1));
             }
             break;
