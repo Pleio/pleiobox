@@ -128,7 +128,7 @@ class PleioboxJSONApi {
             if (isset($child->name)) {
                 $attributes['title'] = $child->name;
             } else {
-                $attributes['title'] = $child->title;
+                $attributes['title'] = htmlspecialchars_decode($child->title, ENT_QUOTES);
             }
 
             if ($child instanceof ElggFile) {
