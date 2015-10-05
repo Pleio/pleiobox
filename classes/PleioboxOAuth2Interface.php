@@ -14,11 +14,14 @@ class PleioboxOAuth2Interface {
         );
 
         $server = new OAuth2\Server($storage, array(
+            'access_lifetime' => 3600*24*7,
             'enforce_state' => false
         ));
 
         $server->addGrantType(new OAuth2\GrantType\AuthorizationCode($storage));
-        $server->addGrantType(new OAuth2\GrantType\RefreshToken($storage));
+        $server->addGrantType(new OAuth2\GrantType\RefreshToken($storage, array(
+            'always_issue_new_refresh_token' => true
+        )));
 
         $this->server = $server;
     }
