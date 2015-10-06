@@ -95,6 +95,9 @@ function pleiobox_api_page_handler($url) {
     $api = new PleioboxJSONApi();
 
     switch ($url[0]) {
+        case "sites":
+            $api->getSites();
+            break;
         case "files":
             if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 $api->getFile($url[1], array_slice($url, 2));

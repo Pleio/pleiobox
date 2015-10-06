@@ -25,21 +25,14 @@ class PleioboxJSONApi {
 
     public function getRegisterApp() {
         $user = elgg_get_logged_in_user_entity();
-
-        $sites = array();
-        foreach (subsite_manager_get_user_subsites($user->guid) as $site) {
-            $sites[] = array(
-                'name' => $site->name,
-                'url' => $site->url
-            );
-        }
-
         $site = elgg_get_site_entity();
+
         $response = array(
             'BaseUrl' => $site->url,
             'Name' => $site->name,
             'User' => $user->username,
-            'BackColor' => '#BDBDBD',
+            'LogoUrl' => $site->url . 'mod/pleiobox/_graphics/icon.png',
+            'BackColor' => '#005dac',
             'FontColor' => '#999999',
             'pin_cert' => '',
             'APIKeys' => array(array(
@@ -51,11 +44,39 @@ class PleioboxJSONApi {
                 'Name' => 'Localbox Android',
                 'Key' => 'testclient',
                 'Secret' => 'testpass'
-            )),
-            'Sites' => $sites
+            ))
         );
 
         return $this->sendResponse($response);
+    }
+
+    public function getSites() {
+        $db_prefix = get_config('dbprefix');
+
+        $sites = array();
+        foreach (subsite_manager_get_user_subsites($user->guid) as $site) {
+            $plugin_enabled = elgg_get_entities_from_relationship(array(
+                'type' => 'object',
+                'subtype' => 'plugin',
+                'relationship_guid' => $site->guid,
+                'relationship' => 'active_plugin',
+                'inverse_relationship' => true,
+                'site_guid' => $site->guid,
+                'joins' => array("JOIN {$db_prefix}objects_entity oe on oe.guid = e.guid"),
+                'selects' => array("oe.title", "oe.description"),
+                'wheres' => array("oe.title = 'pleiobox'"),
+                'limit' => 1
+            ));
+
+            if (count($plugin_enabled) === 1) {
+                $sites[] = array(
+                    'name' => $site->name,
+                    'url' => $site->url
+                );
+            }
+        }
+
+        return $this->sendResponse($sites);
     }
 
     public function getFile($container_guid, $path = array()) {
