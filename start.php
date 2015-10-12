@@ -12,14 +12,13 @@ require_once(dirname(__FILE__) . "/../../vendor/autoload.php");
 function pleiobox_init() {
     elgg_register_page_handler("oauth", "pleiobox_oauth_page_handler");
     elgg_register_page_handler("lox_api", "pleiobox_api_page_handler");
-    elgg_register_page_handler("register_app", "pleiobox_register_app_handler");
 }
 
 elgg_register_event_handler('init', 'system', 'pleiobox_init');
 
 function pleiobox_oauth_page_handler($url) {
-    $interface = new PleioboxOAuth2Interface();
-    $server = $interface->getServer();
+    $oauth = new PleioboxOAuth2();
+    $server = $oauth->getServer();
 
     $request = OAuth2\Request::createFromGlobals();
     $response = new OAuth2\Response();
@@ -56,25 +55,14 @@ function pleiobox_oauth_page_handler($url) {
     return false;
 }
 
-function pleiobox_register_app_handler($url) {
-
-    if (!elgg_is_logged_in()) {
-        $_SESSION['last_forward_from'] = $_SERVER[REQUEST_URI];
-        forward('/login');
-    }
-
-    $api = new PleioboxJSONApi();
-    return $api->getRegisterApp();
-}
-
 function pleiobox_parse_path($path) {
     $path = str_replace('//','/', $path);
     return array_slice(explode('/', $path), 1);
 }
 
 function pleiobox_api_page_handler($url) {
-    $interface = new PleioboxOAuth2Interface();
-    $server = $interface->getServer();
+    $oauth = new PleioboxOAuth2();
+    $server = $oauth->getServer();
 
     if (!elgg_is_logged_in()) {
         if (!$server->verifyResourceRequest(OAuth2\Request::createFromGlobals())) {
@@ -95,6 +83,9 @@ function pleiobox_api_page_handler($url) {
     $api = new PleioboxJSONApi();
 
     switch ($url[0]) {
+        case "register_app":
+            $api->getRegisterApp();
+            break;
         case "sites":
             $api->getSites();
             break;

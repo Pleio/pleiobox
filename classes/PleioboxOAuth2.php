@@ -1,6 +1,6 @@
 <?php
 
-class PleioboxOAuth2Interface {
+class PleioboxOAuth2 {
 
     public function __construct() {
         global $CONFIG;
@@ -18,7 +18,9 @@ class PleioboxOAuth2Interface {
             'enforce_state' => false
         ));
 
-        $server->addGrantType(new OAuth2\GrantType\AuthorizationCode($storage));
+        $uc_storage = new PleioboxOAuth2UserCredentialsStorage();
+        $server->addGrantType(new OAuth2\GrantType\UserCredentials($uc_storage));
+
         $server->addGrantType(new OAuth2\GrantType\RefreshToken($storage, array(
             'always_issue_new_refresh_token' => true
         )));
