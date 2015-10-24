@@ -134,6 +134,7 @@ class PleioboxJSONApi {
         $return['modified_at'] = date('c');
         $return['is_dir'] = true;
         $return['is_share'] = false;
+        $return['is_writable'] = false;
         $return['has_keys'] = false;
         $return['children'] = array();
 
@@ -152,10 +153,17 @@ class PleioboxJSONApi {
                 $attributes['title'] = htmlspecialchars_decode($child->title, ENT_QUOTES);
             }
 
+            if ($child instanceof ElggGroup) {
+                if (!$child->file_enable == "yes") {
+                    continue;
+                }
+            }
+
             if ($child instanceof ElggFile) {
                 $attributes['path'] = $attributes['path'] . '/' . $child->originalfilename;
                 $attributes['is_dir'] = false;
                 $attributes['is_share'] = false;
+                $attributes['is_writable'] = $child->canEdit();
                 $attributes['size'] = 888055;
                 $attributes['mime_type'] = $child->getMimeType();
                 $attributes['revision'] = $child->time_updated;
@@ -163,6 +171,13 @@ class PleioboxJSONApi {
             } else {
                 $attributes['is_dir'] = true;
                 $attributes['is_share'] = false;
+
+                if ($child instanceof ElggGroup) {
+                    $attributes['is_writable'] = false;
+                } else {
+                    $attributes['is_writable'] = $child->canEdit();
+                }
+
                 $attributes['has_keys'] = false;
                 $attributes['icon'] = 'folder';
             }
@@ -183,6 +198,7 @@ class PleioboxJSONApi {
             $return['modified_at'] = date('c', $folder->time_updated);
             $return['is_shared'] = false;
             $return['is_share'] = false;
+            $return['is_writable'] = $folder->canEdit();
             $return['has_keys'] = false;
             $return['path'] = $path;
             $return['icon'] = 'folder';
