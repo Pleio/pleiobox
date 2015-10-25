@@ -160,14 +160,27 @@ class PleioboxJSONApi {
             }
 
             if ($child instanceof ElggFile) {
-                $attributes['path'] = $attributes['path'] . '/' . $child->originalfilename;
+                $filename = $child->getFilenameOnFilestore();
+
+                // odt files have no extension on storage
+                if (strpos($filename, 'blob')) {
+                    $extension = 'odt';
+                } else {
+                    $extension = pathinfo($filename, PATHINFO_EXTENSION);
+                }
+
+                if (!strpos($attributes['title'], $extension)) {
+                    $attributes['title'] = $attributes['title'] . '.' . $extension;
+                }
+
+                $attributes['path'] = $attributes['path'] . '/' . $attributes['title'];
                 $attributes['is_dir'] = false;
                 $attributes['is_share'] = false;
                 $attributes['is_writable'] = $child->canEdit();
                 $attributes['size'] = 888055;
                 $attributes['mime_type'] = $child->getMimeType();
                 $attributes['revision'] = $child->time_updated;
-                $attributes['icon'] = pathinfo($child->getFilename(), PATHINFO_EXTENSION);
+                $attributes['icon'] = $extension;
             } else {
                 $attributes['is_dir'] = true;
                 $attributes['is_share'] = false;
@@ -189,23 +202,29 @@ class PleioboxJSONApi {
     }
 
     public function createFolder($container_guid, $path = array()) {
-        $browser = new ElggFileBrowser($container_guid);
+        try {
 
-        if ($folder = $browser->createFolder($path)) {
-            $return = array();
-            $return['is_dir'] = true;
-            $return['title'] = $folder->title;
-            $return['modified_at'] = date('c', $folder->time_updated);
-            $return['is_shared'] = false;
-            $return['is_share'] = false;
-            $return['is_writable'] = $folder->canEdit();
-            $return['has_keys'] = false;
-            $return['path'] = $path;
-            $return['icon'] = 'folder';
+            $browser = new ElggFileBrowser($container_guid);
 
-            return $this->sendResponse($return, 200);
-        } else {
-            return $this->sendResponse(null, 500);
+            if ($folder = $browser->createFolder($path)) {
+                $folder = get_entity($folder);
+                $return = array();
+                $return['is_dir'] = true;
+                $return['title'] = $folder->title;
+                $return['modified_at'] = date('c', $folder->time_updated);
+                $return['is_shared'] = false;
+                $return['is_share'] = false;
+                $return['is_writable'] = $folder->canEdit();
+                $return['has_keys'] = false;
+                $return['path'] = $path;
+                $return['icon'] = 'folder';
+
+                return $this->sendResponse($return, 200);
+            } else {
+                return $this->sendResponse(null, 500);
+            }
+        } catch (Exception $e) {
+            return $this->sendResponse(null, 404);
         }
     }
 
