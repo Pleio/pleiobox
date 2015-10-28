@@ -1,0 +1,34 @@
+html, body {
+    font-family: "Lucida Grande", Arial, Tahoma, Verdana, sans-serif;
+}
+
+.elgg-inner h1 {
+    margin:0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
+table {
+    font-size: 12px;
+}
+
+h1 { font-size: 1.8em; }
+h2 { font-size: 1.5em; line-height: 1.1em; padding-bottom:5px}
+h3 { font-size: 1.2em; }
+h4 { font-size: 1.0em; }
+h5 { font-size: 0.9em; }
+h6 { font-size: 0.8em; }
+
+.elgg-page-default .elgg-page-header > .elgg-inner {
+    height: 183px;
+}
+
+.pleiobox-breadcrumb {
+    float: left;
+}
+
+.pleiobox-btn-group {
+    float: right;
+}

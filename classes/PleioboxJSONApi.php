@@ -178,8 +178,10 @@ class PleioboxJSONApi {
                 $attributes['is_share'] = false;
                 $attributes['is_writable'] = $child->canEdit();
                 $attributes['size'] = 888055;
+                $attributes['modified_at'] = $child->time_updated;
                 $attributes['mime_type'] = $child->getMimeType();
                 $attributes['revision'] = $child->time_updated;
+                $attributes['shared_with'] = $child->access_id;
                 $attributes['icon'] = $extension;
             } else {
                 $attributes['is_dir'] = true;
@@ -191,6 +193,7 @@ class PleioboxJSONApi {
                     $attributes['is_writable'] = $child->canEdit();
                 }
 
+                $attributes['shared_with'] = $child->access_id;
                 $attributes['has_keys'] = false;
                 $attributes['icon'] = 'folder';
             }

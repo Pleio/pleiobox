@@ -11,7 +11,15 @@ require_once(dirname(__FILE__) . "/../../vendor/autoload.php");
 
 function pleiobox_init() {
     elgg_register_page_handler("oauth", "pleiobox_oauth_page_handler");
-    elgg_register_page_handler("lox_api", "pleiobox_api_page_handler");
+    elgg_register_page_handler("lox_api", "pleiobox_lox_api_page_handler");
+    elgg_register_page_handler("files", "pleiobox_file_page_handler");
+
+    elgg_register_js("jquery-19", "https://code.jquery.com/jquery-1.9.1.min.js", 'head', -100);
+    elgg_register_js("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js", 'head', -99);
+    elgg_register_js("jquery-noconflict", "mod/pleiobox/static/jquery-noconflict.js", 'head', -98);
+
+    elgg_register_css("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
+    elgg_register_css("pleiobox", "mod/pleiobox/static/pleiobox.css");
 }
 
 elgg_register_event_handler('init', 'system', 'pleiobox_init');
@@ -60,7 +68,7 @@ function pleiobox_parse_path($path) {
     return array_slice(explode('/', $path), 1);
 }
 
-function pleiobox_api_page_handler($url) {
+function pleiobox_lox_api_page_handler($url) {
     $oauth = new PleioboxOAuth2();
     $server = $oauth->getServer();
 
@@ -131,6 +139,18 @@ function pleiobox_api_page_handler($url) {
             break;
         case "user":
             $api->getUser();
+            break;
+    }
+
+    return true;
+}
+
+function pleiobox_file_page_handler($url) {
+    gatekeeper();
+
+    switch ($url[0]) {
+        case "group":
+            include(dirname(__FILE__) . "/pages/list.php");
             break;
     }
 
