@@ -12,14 +12,6 @@ require_once(dirname(__FILE__) . "/../../vendor/autoload.php");
 function pleiobox_init() {
     elgg_register_page_handler("oauth", "pleiobox_oauth_page_handler");
     elgg_register_page_handler("lox_api", "pleiobox_lox_api_page_handler");
-    elgg_register_page_handler("files", "pleiobox_file_page_handler");
-
-    elgg_register_js("jquery-19", "https://code.jquery.com/jquery-1.9.1.min.js", 'head', -100);
-    elgg_register_js("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js", 'head', -99);
-    elgg_register_js("jquery-noconflict", "mod/pleiobox/static/jquery-noconflict.js", 'head', -98);
-
-    elgg_register_css("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
-    elgg_register_css("pleiobox", "mod/pleiobox/static/pleiobox.css");
 }
 
 elgg_register_event_handler('init', 'system', 'pleiobox_init');
@@ -36,21 +28,6 @@ function pleiobox_oauth_page_handler($url) {
     }
 
     switch ($url[1]) {
-        case "auth":
-
-            if (!elgg_is_logged_in()) {
-                $_SESSION['last_forward_from'] = $_SERVER[REQUEST_URI];
-                forward('/login');
-            }
-
-            if ($_POST['submit']) {
-                $response = $server->handleAuthorizeRequest($request, $response, true, elgg_get_logged_in_user_guid());
-                $response->send();
-            } else {
-                echo "<form method=\"POST\" action=\"/oauth/v2/auth\"><input type=\"hidden\" name=\"client_id\" value=\"" . get_input('client_id') . "\"><input type=\"hidden\" name=\"response_type\" value=\"" . get_input('response_type') . "\"><input type=\"hidden\" name=\"redirect_uri\" value=\"" . get_input('redirect_uri') . "\"><input type=\"submit\" name=\"submit\" value=\"OK\"></form>";
-            }
-            return true;
-            break;
         case "token":
             $request = OAuth2\Request::createFromGlobals();
             $response = new OAuth2\Response();
@@ -68,25 +45,29 @@ function pleiobox_parse_path($path) {
     return array_slice(explode('/', $path), 1);
 }
 
-function pleiobox_lox_api_page_handler($url) {
+function pleiobox_authorize_request() {
     $oauth = new PleioboxOAuth2();
     $server = $oauth->getServer();
 
-    if (!elgg_is_logged_in()) {
-        if (!$server->verifyResourceRequest(OAuth2\Request::createFromGlobals())) {
-            http_response_code(403);
-            die;
-        }
-
-        $token = $server->getAccessTokenData(OAuth2\Request::createFromGlobals());
-
-        $user = get_user($token['user_id']);
-        if ($user) {
-            login($user);
-        } else {
-            die;
-        }
+    if (!$server->verifyResourceRequest(OAuth2\Request::createFromGlobals())) {
+        http_response_code(403);
+        die;
     }
+
+    $token = $server->getAccessTokenData(OAuth2\Request::createFromGlobals());
+    $user = get_user($token['user_id']);
+
+    if ($user) {
+        login($user);
+    } else {
+        die;
+    }
+}
+
+function pleiobox_lox_api_page_handler($url) {
+
+    // authorize request to API
+    pleiobox_authorize_request();
 
     $api = new PleioboxJSONApi();
 
@@ -139,18 +120,6 @@ function pleiobox_lox_api_page_handler($url) {
             break;
         case "user":
             $api->getUser();
-            break;
-    }
-
-    return true;
-}
-
-function pleiobox_file_page_handler($url) {
-    gatekeeper();
-
-    switch ($url[0]) {
-        case "group":
-            include(dirname(__FILE__) . "/pages/list.php");
             break;
     }
 
