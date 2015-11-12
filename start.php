@@ -45,13 +45,18 @@ function pleiobox_parse_path($path) {
     return array_slice(explode('/', $path), 1);
 }
 
-function pleiobox_authorize_request() {
+function pleiobox_is_authorized() {
+    // only enable for development purposes as this occurs in a XSS vulnerability in production.
+    // if (elgg_is_logged_in()) {
+    //     return true;
+    // }
+
     $oauth = new PleioboxOAuth2();
     $server = $oauth->getServer();
 
     if (!$server->verifyResourceRequest(OAuth2\Request::createFromGlobals())) {
         http_response_code(403);
-        die;
+        return false;
     }
 
     $token = $server->getAccessTokenData(OAuth2\Request::createFromGlobals());
@@ -59,15 +64,18 @@ function pleiobox_authorize_request() {
 
     if ($user) {
         login($user);
-    } else {
-        die;
+        return true;
     }
+
+    return false;
 }
 
 function pleiobox_lox_api_page_handler($url) {
 
     // authorize request to API
-    pleiobox_authorize_request();
+    if (!pleiobox_is_authorized()) {
+        die;
+    }
 
     $api = new PleioboxJSONApi();
 
