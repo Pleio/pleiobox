@@ -58,7 +58,7 @@ class ElggFileBrowser {
         return array_merge($folders, $files);
     }
 
-    public function createFolder($path = array()) {
+    public function createFolder($path = array(), $access_id = 0) {
 
         if (count($path) < 1) {
             throw new Exception('Path length must be at least one.');
@@ -81,12 +81,20 @@ class ElggFileBrowser {
 
         if ($parent instanceof ElggObject) { // lower level folder
             $folder->container_guid = $parent->container_guid;
-            $folder->access_id = $parent->access_id;
             $folder->parent_guid = $parent->guid;
         } elseif ($parent instanceof ElggGroup) { // top level folder
             $folder->container_guid = $parent->guid;
-            $folder->access_id = $parent->group_acl;
             $folder->parent_guid = 0;
+        }
+
+        if (!$access_id) {
+            if ($parent instanceof ElggObject) {
+                $folder->access_id = $parent->access_id;
+            } elseif ($parent instanceof ElggGroup) {
+                $folder->access_id = $parent->group_acl;
+            }
+        } else {
+            $folder->access_id = $access_id;
         }
 
         return $folder->save();
@@ -106,9 +114,10 @@ class ElggFileBrowser {
 
         $contents = $this->getFolderContents($path);
         foreach ($contents as $content) {
-            if ($content->subtype == 'folder') {
+            $subtype = $content->getSubtype();
+            if ($subtype == 'folder') {
                 $this->deleteFolder(array_merge($path, array($content->guid)));
-            } elseif ($content->subtype == 'file') {
+            } elseif ($subtype == 'file') {
                 $content->delete();
             }
         }
@@ -116,32 +125,42 @@ class ElggFileBrowser {
         $folder->delete();
     }
 
-    public function createFile($path = array()) {
+    public function createFile($path = array(), $filename = "", $filestream = false, $access_id = 0) {
 
-        if (count($path) < 1) {
-            throw new Exception('Path length must be at least one.');
-        }
+        if (!isset($filename)) {
+            if (count($path) < 1) {
+                throw new Exception('Path length must be at least one.');
+            }
+            if (count($path) == 1) {
+                $parent = $this->container;
+            } else {
+                $parent_guid = array_slice($path, -2)[0];
+                $parent = get_entity($parent_guid);
+            }
 
-        if (count($path) == 1) {
-            $parent = $this->container;
+            $filename = array_slice($path, -1)[0];
         } else {
-            $parent_guid = array_slice($path, -2)[0];
-            $parent = get_entity($parent_guid);
+            if (count($path) == 0) {
+                $parent = $this->container;
+            } else {
+                $parent_guid = array_slice($path, -1)[0];
+                $parent = get_entity($parent_guid);
+            }
         }
 
         if (!$parent | !$parent->canWriteToContainer()) {
             return false;
         }
 
-        if ($parent instanceof ElggObject) { // lower level folder
-            $access_id = $parent->access_id;
-        } elseif ($parent instanceof ElggGroup) { // top level folder
-            $access_id = $parent->group_acl;
-        } else {
-            throw new Exception('Invalid container.');
+        if (!$access_id) {
+            if ($parent instanceof ElggObject) { // lower level folder
+                $access_id = $parent->access_id;
+            } elseif ($parent instanceof ElggGroup) { // top level folder
+                $access_id = $parent->group_acl;
+            } else {
+                throw new Exception('Invalid container.');
+            }
         }
-
-        $filename = array_slice($path, -1)[0];
 
         $file = new FilePluginFile();
         $file->subtype = "file";
@@ -153,8 +172,12 @@ class ElggFileBrowser {
         $file->setFilename("file/" . $filestorename);
         $file->originalfilename = $filename;
 
-        $input = fopen("php://input", "r");
-        file_put_contents($file->getFilenameOnFilestore(), $input);
+        if (!isset($filestream)) {
+            $input = fopen("php://input", "r");
+            file_put_contents($file->getFilenameOnFilestore(), $input);
+        } else {
+            file_put_contents($file->getFilenameOnFilestore(), $filestream);
+        }
 
         $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), mime_content_type($filename));
         $file->setMimeType($mime_type);
@@ -200,10 +223,8 @@ class ElggFileBrowser {
             }
         }
 
-        if (count($path) > 1) {
-            if ($parent instanceof ElggObject) {
-                add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
-            }
+        if ($parent != $this->container && $parent instanceof ElggObject) {
+            add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
         }
     }
 
