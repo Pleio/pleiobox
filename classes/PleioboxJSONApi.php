@@ -154,7 +154,7 @@ class PleioboxJSONApi {
             }
 
             if ($child instanceof ElggGroup) {
-                if (!$child->file_enable == "yes") {
+                if ($child->file_enable === "no") {
                     continue;
                 }
             }
