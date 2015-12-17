@@ -172,11 +172,11 @@ class ElggFileBrowser {
         $file->setFilename("file/" . $filestorename);
         $file->originalfilename = $filename;
 
-        if (!isset($filestream)) {
+        if ($filestream) {
+            file_put_contents($file->getFilenameOnFilestore(), $filestream);
+        } else {
             $input = fopen("php://input", "r");
             file_put_contents($file->getFilenameOnFilestore(), $input);
-        } else {
-            file_put_contents($file->getFilenameOnFilestore(), $filestream);
         }
 
         $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), mime_content_type($filename));

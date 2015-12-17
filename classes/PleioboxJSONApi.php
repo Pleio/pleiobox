@@ -91,7 +91,10 @@ class PleioboxJSONApi {
     public function createFile($container_guid, $path = array()) {
         try {
             $browser = new ElggFileBrowser($container_guid);
-            $browser->createFile($path);
+            $filename = array_slice($path, -1)[0];
+            $path = array_slice($path, 0, -1);
+
+            $browser->createFile($path, $filename);
             return $this->sendResponse(null, 200);
         } catch(Exception $e) {
             return $this->sendResponse(null, 500);
