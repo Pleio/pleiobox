@@ -8,10 +8,13 @@
 */
 
 require_once(dirname(__FILE__) . "/../../vendor/autoload.php");
+require_once(dirname(__FILE__) . "/lib/hooks.php");
 
 function pleiobox_init() {
     elgg_register_page_handler("oauth", "pleiobox_oauth_page_handler");
     elgg_register_page_handler("lox_api", "pleiobox_lox_api_page_handler");
+
+    elgg_register_plugin_hook_handler("public_pages", "walled_garden", "pleiobox_public_pages");
 }
 
 elgg_register_event_handler('init', 'system', 'pleiobox_init');
