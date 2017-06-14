@@ -20,12 +20,6 @@
     <priority>after</priority>
   </requires>
 
-  <requires>
-    <type>priority</type>
-    <plugin>file_tools</plugin>
-    <priority>after</priority>
-  </requires>
-
   <category>Pleio</category>
   <category>Localbox</category>
 </plugin_manifest>

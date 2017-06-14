@@ -31,11 +31,11 @@ class PleioboxFileBrowser {
             $options['wheres'] = "NOT EXISTS (
                     SELECT 1 FROM {$db_prefix}entity_relationships r
                     WHERE r.guid_two = e.guid AND
-                    r.relationship = '" . FILE_TOOLS_RELATIONSHIP . "')";
+                    r.relationship = 'folder_of')";
             $files = elgg_get_entities($options);
         } else {
             $parent_guid = array_slice($path, -1)[0];
-            $options['relationship'] = FILE_TOOLS_RELATIONSHIP;
+            $options['relationship'] = "folder_of";
             $options['relationship_guid'] = $parent_guid;
             $files = elgg_get_entities_from_relationship($options);
         }
@@ -224,7 +224,7 @@ class PleioboxFileBrowser {
         }
 
         if ($parent != $this->container && $parent instanceof ElggObject) {
-            add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
+            add_entity_relationship($parent->guid, "folder_of", $file->guid);
         }
     }
 
