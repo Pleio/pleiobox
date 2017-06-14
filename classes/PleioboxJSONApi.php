@@ -81,7 +81,7 @@ class PleioboxJSONApi {
 
     public function getFile($container_guid, $path = array()) {
         try {
-            $browser = new ElggFileBrowser($container_guid);
+            $browser = new PleioboxFileBrowser($container_guid);
             $browser->getFile($path);
         } catch(Exception $e) {
             return $this->sendResponse(null, 404);
@@ -90,7 +90,7 @@ class PleioboxJSONApi {
 
     public function createFile($container_guid, $path = array()) {
         try {
-            $browser = new ElggFileBrowser($container_guid);
+            $browser = new PleioboxFileBrowser($container_guid);
             $filename = array_slice($path, -1)[0];
             $path = array_slice($path, 0, -1);
 
@@ -123,7 +123,7 @@ class PleioboxJSONApi {
                 $parent_path .= '/' . implode('/', $path);
             }
 
-            $browser = new ElggFileBrowser($container_guid);
+            $browser = new PleioboxFileBrowser($container_guid);
             $children = $browser->getFolderContents($path);
 
             $parent_guid = array_slice($path, -1)[0];
@@ -210,7 +210,7 @@ class PleioboxJSONApi {
     public function createFolder($container_guid, $path = array()) {
         try {
 
-            $browser = new ElggFileBrowser($container_guid);
+            $browser = new PleioboxFileBrowser($container_guid);
 
             if ($folder = $browser->createFolder($path)) {
                 $folder = get_entity($folder);
@@ -235,7 +235,7 @@ class PleioboxJSONApi {
     }
 
     public function move($from_container_guid, $from_path = array(), $to_container_guid, $to_path = array()) {
-        $browser = new ElggFileBrowser($from_container_guid);
+        $browser = new PleioboxFileBrowser($from_container_guid);
 
         if ($browser->move($from_path, $to_container_guid, $to_path)) {
             return $this->sendResponse(null, 200);
@@ -245,7 +245,7 @@ class PleioboxJSONApi {
     }
 
     public function delete($container_guid, $path = array()) {
-        $browser = new ElggFileBrowser($container_guid);
+        $browser = new PleioboxFileBrowser($container_guid);
 
         if (strpos(array_slice($path, -1)[0], '.') !== false) { // it is a file
             $browser->deleteFile($path);

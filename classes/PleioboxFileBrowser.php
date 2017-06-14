@@ -1,6 +1,6 @@
 <?php
 
-class ElggFileBrowser {
+class PleioboxFileBrowser {
 
     function __construct($container_guid) {
         $container = get_entity($container_guid);
